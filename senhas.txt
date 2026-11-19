@@ -1,0 +1,8 @@
+msfadmin
+admin
+123456
+password
+toor
+root
+senha123
+qwerty
